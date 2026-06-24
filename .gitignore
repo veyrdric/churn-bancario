@@ -1,0 +1,17 @@
+# IDE
+.vscode/
+
+# Entorno virtual
+venv/
+
+# Cache de Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+
+# Jupyter Notebook
+.ipynb_checkpoints/
+
+
