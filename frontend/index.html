@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<!--
+  index.html - Interfaz para consumir la API de churn.
+  Alumno: Ruiz Diaz Dario Ezequiel
+  Materia: Taller de Lenguajes de Programación III
+
+  Nota de Dario: hice todo en un solo archivo (HTML + CSS + JS) para que sea fácil
+  de abrir: se hace doble clic y listo, no necesita compilar nada. La página tiene
+  dos partes: (1) formulario para cargar un cliente y predecir, y (2) panel con las
+  métricas de rendimiento del modelo que pide la consigna, que se leen de /metrics.
+-->
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Predicción de Churn Bancario — Ruiz Diaz Dario Ezequiel</title>
+<style>
+  :root { --azul:#2c5fb0; --rojo:#c0392b; --verde:#1e8449; --gris:#f4f6fb; --borde:#dde3ee; }
+  * { box-sizing: border-box; }
+  body { font-family: 'Segoe UI', system-ui, sans-serif; margin:0; background:var(--gris); color:#222; }
+  header { background:var(--azul); color:#fff; padding:22px 28px; }
+  header h1 { margin:0; font-size:22px; }
+  header p { margin:4px 0 0; opacity:.9; font-size:14px; }
+  .wrap { max-width:1050px; margin:22px auto; padding:0 16px; display:grid; grid-template-columns:1fr 1fr; gap:20px; }
+  .card { background:#fff; border:1px solid var(--borde); border-radius:12px; padding:22px; box-shadow:0 1px 4px rgba(0,0,0,.04); }
+  .card h2 { margin:0 0 16px; font-size:17px; color:var(--azul); }
+  label { display:block; font-size:13px; font-weight:600; margin:10px 0 4px; }
+  input, select { width:100%; padding:9px 10px; border:1px solid var(--borde); border-radius:8px; font-size:14px; }
+  .row { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  button { margin-top:18px; width:100%; background:var(--azul); color:#fff; border:0; padding:12px; border-radius:8px;
+           font-size:15px; font-weight:600; cursor:pointer; }
+  button:hover { background:#244e93; }
+  #resultado { margin-top:18px; padding:16px; border-radius:10px; text-align:center; display:none; }
+  #resultado.se-va { background:#fdecea; border:1px solid var(--rojo); }
+  #resultado.se-queda { background:#eafaf1; border:1px solid var(--verde); }
+  #resultado .et { font-size:20px; font-weight:700; }
+  #resultado.se-va .et { color:var(--rojo); }
+  #resultado.se-queda .et { color:var(--verde); }
+  .barra { height:14px; background:#eee; border-radius:7px; overflow:hidden; margin:10px 0 4px; }
+  .barra > div { height:100%; background:var(--rojo); width:0; transition:width .5s; }
+  .metric-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  .metric { background:var(--gris); border-radius:10px; padding:12px; text-align:center; }
+  .metric .v { font-size:24px; font-weight:700; color:var(--azul); }
+  .metric .l { font-size:12px; color:#666; margin-top:2px; }
+  table { width:100%; border-collapse:collapse; margin-top:12px; font-size:13px; }
+  th, td { border:1px solid var(--borde); padding:7px; text-align:center; }
+  th { background:var(--gris); }
+  .cm td { font-weight:600; }
+  .nota { font-size:12px; color:#777; margin-top:10px; line-height:1.4; }
+  footer { text-align:center; color:#888; font-size:12px; padding:18px; }
+  @media (max-width:860px){ .wrap{ grid-template-columns:1fr; } }
+</style>
+</head>
+<body>
+<header>
+  <h1>🏦 Predicción de Abandono de Clientes (Churn)</h1>
+  <p>TP Final — Ruiz Diaz Dario Ezequiel · Taller de Lenguajes de Programación III</p>
+</header>
+
+<div class="wrap">
+  <!-- ============ FORMULARIO ============ -->
+  <section class="card">
+    <h2>1. Datos del cliente</h2>
+    <form id="form">
+      <div class="row">
+        <div><label>Credit Score</label><input type="number" id="CreditScore" value="600" min="300" max="900" required></div>
+        <div><label>Edad</label><input type="number" id="Age" value="45" min="18" max="100" required></div>
+      </div>
+      <div class="row">
+        <div><label>País</label>
+          <select id="Geography"><option>France</option><option selected>Germany</option><option>Spain</option></select>
+        </div>
+        <div><label>Género</label>
+          <select id="Gender"><option selected>Female</option><option>Male</option></select>
+        </div>
+      </div>
+      <div class="row">
+        <div><label>Antigüedad (años)</label><input type="number" id="Tenure" value="3" min="0" max="10" required></div>
+        <div><label>Balance ($)</label><input type="number" id="Balance" value="120000" min="0" step="0.01" required></div>
+      </div>
+      <div class="row">
+        <div><label>N° de productos</label><input type="number" id="NumOfProducts" value="2" min="1" max="4" required></div>
+        <div><label>Salario estimado ($)</label><input type="number" id="EstimatedSalary" value="80000" min="0" step="0.01" required></div>
+      </div>
+      <div class="row">
+        <div><label>¿Tiene tarjeta de crédito?</label>
+          <select id="HasCrCard"><option value="1" selected>Sí</option><option value="0">No</option></select>
+        </div>
+        <div><label>¿Es miembro activo?</label>
+          <select id="IsActiveMember"><option value="1">Sí</option><option value="0" selected>No</option></select>
+        </div>
+      </div>
+      <button type="submit">Predecir</button>
+    </form>
+
+    <div id="resultado">
+      <div class="et" id="etiqueta"></div>
+      <div class="barra"><div id="barraProb"></div></div>
+      <div id="probTxt"></div>
+      <div id="mensaje" style="font-size:13px;color:#555;margin-top:6px;"></div>
+    </div>
+    <p class="nota">La API valida los rangos; si un valor está fuera de lo permitido, devuelve un error 422.</p>
+  </section>
+
+  <!-- ============ MÉTRICAS DEL MODELO ============ -->
+  <section class="card">
+    <h2>2. Rendimiento del modelo</h2>
+    <div id="metricas">
+      <p style="color:#888;font-size:14px">Cargando métricas desde la API…</p>
+    </div>
+  </section>
+</div>
+
+<footer>Random Forest podado · Modelo servido con FastAPI · Ruiz Diaz Dario Ezequiel</footer>
+
+<script>
+// Nota de Dario: si abro la API en otra IP/puerto, solo cambio esta constante.
+const API_URL = "http://127.0.0.1:8000";
+
+// ---------- 1. PREDICCIÓN ----------
+document.getElementById("form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  // Armo el JSON respetando los tipos que espera la API (números, no strings).
+  const datos = {
+    CreditScore: +CreditScore.value, Geography: Geography.value, Gender: Gender.value,
+    Age: +Age.value, Tenure: +Tenure.value, Balance: +Balance.value,
+    NumOfProducts: +NumOfProducts.value, HasCrCard: +HasCrCard.value,
+    IsActiveMember: +IsActiveMember.value, EstimatedSalary: +EstimatedSalary.value
+  };
+  try {
+    const resp = await fetch(`${API_URL}/predict`, {
+      method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify(datos)
+    });
+    if (!resp.ok) { alert("Error de la API (código " + resp.status + "). ¿Está corriendo el servidor?"); return; }
+    const r = await resp.json();
+    mostrarResultado(r);
+  } catch (err) {
+    alert("No me pude conectar a la API. Verificá que esté corriendo:\n  cd backend && uvicorn main:app --reload");
+  }
+});
+
+function mostrarResultado(r) {
+  const caja = document.getElementById("resultado");
+  const seVa = r.prediccion === 1;
+  caja.style.display = "block";
+  caja.className = seVa ? "se-va" : "se-queda";
+  document.getElementById("etiqueta").textContent = seVa ? "⚠️ " + r.etiqueta : "✅ " + r.etiqueta;
+  const pct = (r.probabilidad_churn * 100).toFixed(1);
+  document.getElementById("barraProb").style.width = pct + "%";
+  document.getElementById("probTxt").textContent = "Probabilidad de abandono: " + pct + "%";
+  document.getElementById("mensaje").textContent = r.mensaje;
+}
+
+// ---------- 2. MÉTRICAS ----------
+async function cargarMetricas() {
+  try {
+    const r = await (await fetch(`${API_URL}/metrics`)).json();
+    const t = r.test, cm = r.matriz_confusion;
+    let html = `<div class="metric-grid">
+      <div class="metric"><div class="v">${(t.Accuracy*100).toFixed(1)}%</div><div class="l">Accuracy</div></div>
+      <div class="metric"><div class="v">${t["ROC-AUC"]}</div><div class="l">ROC-AUC</div></div>
+      <div class="metric"><div class="v">${(t["Precision(1)"]*100).toFixed(1)}%</div><div class="l">Precisión (se va)</div></div>
+      <div class="metric"><div class="v">${(t["Recall(1)"]*100).toFixed(1)}%</div><div class="l">Recall (se va)</div></div>
+    </div>`;
+
+    // Matriz de confusión
+    html += `<h3 style="font-size:14px;margin:18px 0 4px;color:#444">Matriz de confusión (test: ${r.n_test} clientes)</h3>
+      <table class="cm">
+        <tr><th></th><th>Pred: Se queda</th><th>Pred: Se va</th></tr>
+        <tr><th>Real: Se queda</th><td>${cm[0][0]}</td><td>${cm[0][1]}</td></tr>
+        <tr><th>Real: Se va</th><td>${cm[1][0]}</td><td>${cm[1][1]}</td></tr>
+      </table>`;
+
+    // Top variables
+    if (r.importancias) {
+      html += `<h3 style="font-size:14px;margin:18px 0 4px;color:#444">Top variables más influyentes</h3><table><tr><th>Variable</th><th>Importancia</th></tr>`;
+      r.importancias.slice(0,5).forEach(v => {
+        html += `<tr><td>${v.variable}</td><td>${(v.importancia*100).toFixed(1)}%</td></tr>`;
+      });
+      html += `</table>`;
+    }
+
+    html += `<p class="nota">Comparado contra una Regresión Logística (baseline) que rindió ROC-AUC ${r.baseline_logreg["ROC-AUC"]}.
+      El recall no es alto a propósito: el Random Forest está podado para no sobreajustar, así las métricas son realistas.</p>`;
+    document.getElementById("metricas").innerHTML = html;
+  } catch (err) {
+    document.getElementById("metricas").innerHTML =
+      `<p style="color:#c0392b;font-size:14px">No pude cargar las métricas. ¿Está corriendo la API en ${API_URL}?</p>`;
+  }
+}
+cargarMetricas();
+</script>
+</body>
+</html>
