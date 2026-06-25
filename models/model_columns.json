@@ -1,0 +1,39 @@
+{
+  "num_features": [
+    "CreditScore",
+    "Age",
+    "Tenure",
+    "Balance",
+    "NumOfProducts",
+    "HasCrCard",
+    "IsActiveMember",
+    "EstimatedSalary"
+  ],
+  "cat_features": [
+    "Geography",
+    "Gender"
+  ],
+  "categorias": {
+    "Geography": [
+      "France",
+      "Germany",
+      "Spain"
+    ],
+    "Gender": [
+      "Female",
+      "Male"
+    ]
+  },
+  "orden_columnas": [
+    "CreditScore",
+    "Geography",
+    "Gender",
+    "Age",
+    "Tenure",
+    "Balance",
+    "NumOfProducts",
+    "HasCrCard",
+    "IsActiveMember",
+    "EstimatedSalary"
+  ]
+}

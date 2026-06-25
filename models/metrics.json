@@ -1,0 +1,70 @@
+{
+  "modelo": "RandomForestClassifier (podado)",
+  "test": {
+    "Accuracy": 0.866,
+    "Precision(1)": 0.852,
+    "Recall(1)": 0.41,
+    "F1(1)": 0.554,
+    "ROC-AUC": 0.86
+  },
+  "baseline_logreg": {
+    "Accuracy": 0.816,
+    "Precision(1)": 0.627,
+    "Recall(1)": 0.231,
+    "F1(1)": 0.338,
+    "ROC-AUC": 0.783
+  },
+  "matriz_confusion": [
+    [
+      1564,
+      29
+    ],
+    [
+      240,
+      167
+    ]
+  ],
+  "n_test": 2000,
+  "importancias": [
+    {
+      "variable": "Age",
+      "importancia": 0.391701916334655
+    },
+    {
+      "variable": "NumOfProducts",
+      "importancia": 0.2503852988846006
+    },
+    {
+      "variable": "IsActiveMember",
+      "importancia": 0.08281628174301052
+    },
+    {
+      "variable": "Balance",
+      "importancia": 0.07873704754240095
+    },
+    {
+      "variable": "Geography_Germany",
+      "importancia": 0.059009432909020394
+    },
+    {
+      "variable": "EstimatedSalary",
+      "importancia": 0.032429824390097166
+    },
+    {
+      "variable": "CreditScore",
+      "importancia": 0.0320447806256387
+    },
+    {
+      "variable": "Tenure",
+      "importancia": 0.017721179969237624
+    },
+    {
+      "variable": "Geography_France",
+      "importancia": 0.013752315226690782
+    },
+    {
+      "variable": "Gender_Male",
+      "importancia": 0.013609112658413884
+    }
+  ]
+}
